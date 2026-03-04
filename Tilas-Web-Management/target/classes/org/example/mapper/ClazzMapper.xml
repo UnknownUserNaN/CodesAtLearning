@@ -1,0 +1,46 @@
+<!--定义Mapper映射文件的约束和基本结构-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.ClazzMapper">
+    <update id="update">
+        update clazz
+        set name = #{name},
+            room = #{room},
+            begin_date = #{beginDate},
+            end_date = #{endDate},
+            master_id = #{masterId},
+            subject = #{subject},
+            update_time = #{updateTime}
+        where id = #{id}
+    </update>
+
+    <select id="listByQuery" resultType="org.example.pojo.Clazz">
+        select
+            c.id,
+            c.name as name,
+            c.room,
+            c.subject,
+            c.begin_date,
+            c.end_date,
+            c.master_id,
+            e.name as master_name,
+            c.create_time,
+            c.update_time,
+            (case when c.end_date &lt; now() then '已结课'
+                when c.begin_date &gt; now() then '未开班'
+                else '在读中' end)
+            as status
+        from
+            clazz as c left join emp as e on c.master_id = e.id
+        <where>
+            <if test="name != null and name != ''">
+                c.name like concat('%', #{name}, '%')
+            </if>
+            <if test="begin != null and end != null">
+                and c.begin_date between #{begin} and #{end}
+                and c.end_date between #{begin} and #{end}
+            </if>
+        </where>
+    </select>
+</mapper>

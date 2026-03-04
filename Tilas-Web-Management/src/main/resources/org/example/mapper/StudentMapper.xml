@@ -1,0 +1,129 @@
+<!--定义Mapper映射文件的约束和基本结构-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.StudentMapper">
+
+    <select id="listByQuery" resultType="org.example.pojo.Student">
+        select
+            s.id,
+            s.name,
+            s.no,
+            s.gender,
+            s.phone,
+            s.id_card,
+            s.is_college,
+            s.address,
+            s.degree,
+            s.graduation_date,
+            s.clazz_id,
+            s.violation_count,
+            s.violation_score,
+            s.create_time,
+            s.update_time,
+            c.name as clazz_name
+        from student as s left join clazz as c on s.clazz_id = c.id
+        <where>
+            <if test="name != null and name != ''">
+                s.name like concat('%', #{name}, '%')
+            </if>
+            <if test="degree != null and degree != ''">
+                and s.degree = #{degree}
+            </if>
+            <if test="clazzId != null and clazzId != ''">
+                and s.clazz_id = #{clazzId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getStudentCountData" resultType="java.util.Map">
+        select
+            c.name as name,
+            count(s.id) as count
+        from
+            student as s left join clazz as c on s.clazz_id = c.id
+        group by
+            s.clazz_id
+    </select>
+
+    <select id="getStudentDegreeData" resultType="java.util.Map">
+        select
+            (case degree when 1 then '初中'
+                         when 2 then '高中'
+                         when 3 then '大专'
+                         when 4 then '本科'
+                         when 5 then '硕士'
+                         when 6 then '博士'
+                         else '其他' end
+                ) as name,
+            count(*) as value
+        from
+            student
+        group by
+            degree
+    </select>
+
+    <delete id="deleteByIds">
+        delete from student where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="addStudent">
+        insert into student(name, no, gender, phone, id_card, is_college, address, degree, graduation_date, clazz_id, violation_count, violation_score, create_time, update_time)
+        values(#{name}, #{no}, #{gender}, #{phone}, #{idCard}, #{isCollege}, #{address}, #{degree}, #{graduationDate}, #{clazzId}, #{violationCount}, #{violationScore}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        update student
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="no != null and no != ''">
+                no = #{no},
+            </if>
+            <if test="gender != null and gender != ''">
+                gender = #{gender},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="idCard != null and idCard != ''">
+                id_card = #{idCard},
+            </if>
+            <if test="isCollege != null">
+                is_college = #{isCollege},
+            </if>
+            <if test="address != null and address != ''">
+                address = #{address},
+            </if>
+            <if test="degree != null and degree != ''">
+                degree = #{degree},
+            </if>
+            <if test="graduationDate != null">
+                graduation_date = #{graduationDate},
+            </if>
+            <if test="clazzId != null">
+                clazz_id = #{clazzId},
+            </if>
+            <if test="violationCount != null">
+                violation_count = #{violationCount},
+            </if>
+            <if test="violationScore != null">
+                violation_score = #{violationScore},
+            </if>
+            update_time = #{updateTime}
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="addViolation">
+        update student
+        set violation_count = violation_count + 1,
+            violation_score = violation_score + #{score}
+        where id = #{id}
+    </update>
+
+</mapper>
